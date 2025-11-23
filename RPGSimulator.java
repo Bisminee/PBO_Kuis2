@@ -11,18 +11,9 @@ public class RPGSimulator extends JFrame {
 
     private JTextArea txtOutput;
 
-    // === DATA TERSIMPAN (dipakai simulasi) ===
-    private String heroName = "Makima";
-    private int heroLevel = 99;
-    private int heroMaxHP = 120;
-    private int heroAP = 25; // base AP hero (bisa kamu buat input kalau mau)
-
-    private String skillName = "Judgement Hammer";
-    private double skillMultiplier = 1.0;
-
-    private String enemyName = "Drake";
-    private int enemyMaxHP = 150;
-    private int enemyAP = 28;
+    private Hero hero;
+    private Enemy enemy;
+    private Skill skill;
 
     public RPGSimulator() {
         setTitle("RPG Simulator - Hero vs Enemy Edition");
@@ -30,6 +21,10 @@ public class RPGSimulator extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
+
+        hero = new Hero("Denji", 10, 80, 20);
+        enemy = new Enemy("Makima", 150, 23);
+        skill = new Skill("Transform", 1.0);
 
         JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -66,7 +61,7 @@ public class RPGSimulator extends JFrame {
         statusPanel.add(new JLabel("Nama Hero"), gbc);
         gbc.gridx = 1;
         gbc.weightx = 0.7;
-        txtHeroName = new JTextField(heroName);
+        txtHeroName = new JTextField(hero.getName());
         statusPanel.add(txtHeroName, gbc);
 
         gbc.gridx = 0;
@@ -75,7 +70,7 @@ public class RPGSimulator extends JFrame {
         statusPanel.add(new JLabel("Level"), gbc);
         gbc.gridx = 1;
         gbc.weightx = 0.7;
-        txtHeroLevel = new JTextField(String.valueOf(heroLevel));
+        txtHeroLevel = new JTextField(String.valueOf(hero.getLevel()));
         statusPanel.add(txtHeroLevel, gbc);
 
         gbc.gridx = 0;
@@ -105,7 +100,7 @@ public class RPGSimulator extends JFrame {
         skillPanel.add(new JLabel("Nama Skill"), gbc);
         gbc.gridx = 1;
         gbc.weightx = 0.7;
-        txtSkillName = new JTextField(skillName);
+        txtSkillName = new JTextField(skill.getSkillName());
         skillPanel.add(txtSkillName, gbc);
 
         gbc.gridx = 0;
@@ -114,7 +109,7 @@ public class RPGSimulator extends JFrame {
         skillPanel.add(new JLabel("Multiplier"), gbc);
         gbc.gridx = 1;
         gbc.weightx = 0.7;
-        txtSkillMultiplier = new JTextField("100"); // default input gaya persen
+        txtSkillMultiplier = new JTextField("1.5"); // default input gaya persen
         skillPanel.add(txtSkillMultiplier, gbc);
 
         JPanel btnGroupPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
@@ -162,7 +157,7 @@ public class RPGSimulator extends JFrame {
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
-        txtEnemyName = new JTextField(enemyName);
+        txtEnemyName = new JTextField(enemy.getName());
         statusPanel.add(txtEnemyName, gbc);
 
         gbc.gridx = 0;
@@ -173,7 +168,7 @@ public class RPGSimulator extends JFrame {
         gbc.gridx = 1;
         gbc.gridy = 1;
         gbc.weightx = 1.0;
-        txtEnemyHP = new JTextField(String.valueOf(enemyMaxHP));
+        txtEnemyHP = new JTextField(String.valueOf(enemy.getMaxHP()));
         statusPanel.add(txtEnemyHP, gbc);
 
         gbc.gridx = 0;
@@ -184,7 +179,7 @@ public class RPGSimulator extends JFrame {
         gbc.gridx = 1;
         gbc.gridy = 2;
         gbc.weightx = 1.0;
-        txtEnemyAP = new JTextField(String.valueOf(enemyAP));
+        txtEnemyAP = new JTextField(String.valueOf(enemy.getAttackPower()));
         statusPanel.add(txtEnemyAP, gbc);
 
         gbc.gridx = 0;
@@ -232,43 +227,31 @@ public class RPGSimulator extends JFrame {
     }
 
     private void actionSaveHero() {
-        String nameInput = txtHeroName.getText().trim();
-        String levelInput = txtHeroLevel.getText().trim();
-
-        if (!nameInput.isEmpty()) heroName = nameInput;
-        try {
-            heroLevel = Integer.parseInt(levelInput);
-        } catch (NumberFormatException e) {
-            heroLevel = 1;
-        }
+        hero.setName(txtHeroName.getText());
+        hero.setLevel(Integer.parseInt(txtHeroLevel.getText()));
+        skill = new Skill(txtSkillName.getText(),
+                Double.parseDouble(txtSkillMultiplier.getText()));
 
         logSeparator();
         logToOutput("Hero berhasil diganti!");
-        logToOutput("Hero sekarang bernama " + heroName + " dengan Level " + heroLevel);
+        logToOutput("Hero sekarang bernama " + hero.getName() + " dengan Level " + hero.getLevel());
         logSeparator();
     }
 
     private void actionSaveEnemy() {
-        String nameInput = txtEnemyName.getText().trim();
-        if (!nameInput.isEmpty()) enemyName = nameInput;
-
-        try {
-            enemyMaxHP = Integer.parseInt(txtEnemyHP.getText().trim());
-            enemyAP = Integer.parseInt(txtEnemyAP.getText().trim());
-        } catch (NumberFormatException ex) {
-            logToOutput("ERROR: HP/AP Enemy harus angka. Pakai default.");
-            enemyMaxHP = 150;
-            enemyAP = 28;
-        }
+        enemy.setName(txtEnemyName.getText());
+        enemy.setCurrentHP(Integer.parseInt(txtEnemyHP.getText()));
+        enemy.setAttackPower(Integer.parseInt(txtEnemyAP.getText()));
 
         logSeparator();
-        logToOutput("> Enemy saved: " + enemyName + " | HP: " + enemyMaxHP + " | AP: " + enemyAP);
+        logToOutput("> Enemy saved: " + enemy.getName() + " | HP: " + enemy.getMaxHP() + " | AP: "
+                + enemy.getAttackPower());
         logSeparator();
     }
 
     private void actionAddSkill() {
-        skillName = txtSkillName.getText().trim();
-        skillMultiplier = parseMultiplier(txtSkillMultiplier.getText().trim());
+        String skillName = txtSkillName.getText().trim();
+        double skillMultiplier = parseMultiplier(txtSkillMultiplier.getText().trim());
 
         logSeparator();
         logToOutput("Skill dengan nama " + skillName + " dengan "
@@ -278,8 +261,8 @@ public class RPGSimulator extends JFrame {
     }
 
     private void actionDeleteSkill() {
-        skillName = txtSkillName.getText().trim();
-        skillMultiplier = parseMultiplier(txtSkillMultiplier.getText().trim());
+        String skillName = txtSkillName.getText().trim();
+        double skillMultiplier = parseMultiplier(txtSkillMultiplier.getText().trim());
 
         logSeparator();
         logToOutput("Skill dengan nama " + skillName + " dengan "
@@ -292,82 +275,10 @@ public class RPGSimulator extends JFrame {
         logSeparator();
         logToOutput("Simulasi dimulai!");
 
-        // === SETUP ===
-        int heroCurrentHP = heroMaxHP;
-        int enemyCurrentHP = enemyMaxHP;
+        String log = BattleSimulator.runBattle(hero, enemy, skill);
+        txtOutput.append(log);
 
-        int baseHeroDamage = heroAP + heroLevel * 2;
-        int heroSkillDamage = (int)Math.round(baseHeroDamage * skillMultiplier);
-
-        StringBuilder simLog = new StringBuilder();
-        simLog.append("=== SETUP ===\n");
-        simLog.append("Team A:\n");
-        simLog.append("  - Player(name=" + heroName
-                + ", HP=" + heroCurrentHP + "/" + heroMaxHP
-                + ", AP=" + heroAP
-                + ", Lv=" + heroLevel + ")\n");
-        simLog.append("    Skills: [" + skillName + "(x" + skillMultiplier + ")]\n");
-        simLog.append("    Effects: [Shield(-10 dmg)]\n");
-
-        simLog.append("Team B:\n");
-        simLog.append("  - BossMonster(name=" + enemyName
-                + ", HP=" + enemyCurrentHP + "/" + enemyMaxHP
-                + ", AP=" + enemyAP + ")\n\n");
-
-        simLog.append("Damage rules:\n");
-        simLog.append("  - Player base damage = AP + Lv*2 = "
-                + heroAP + " + " + (heroLevel * 2) + " = " + baseHeroDamage + "\n");
-        simLog.append("  - " + skillName + ": " + baseHeroDamage + " * "
-                + skillMultiplier + " ≈ " + heroSkillDamage + "\n");
-        simLog.append("  - Shield(flat -10) mengurangi damage enemy.\n\n");
-
-        // === LOOP TURN ===
-        int turn = 1;
-        while (heroCurrentHP > 0 && enemyCurrentHP > 0) {
-            simLog.append("=== TURN " + turn + " ===\n");
-
-            // Hero menyerang
-            simLog.append("[Team A] " + heroName + " -> " + enemyName
-                    + " (" + skillName + "): " + heroSkillDamage + " dmg\n");
-            int beforeEnemy = enemyCurrentHP;
-            enemyCurrentHP = Math.max(0, enemyCurrentHP - heroSkillDamage);
-            simLog.append("  " + enemyName + " HP: " + beforeEnemy
-                    + " -> " + enemyCurrentHP + "\n");
-
-            // Cek musuh mati
-            if (enemyCurrentHP <= 0) {
-                simLog.append("\n" + enemyName + " tumbang!\n");
-                break;
-            }
-
-            // Enemy membalas (pakai shield -10)
-            int enemyRealDmg = Math.max(0, enemyAP - 10);
-            simLog.append("[Team B] " + enemyName + " -> " + heroName
-                    + " (Normal hit " + enemyAP + ", Shield -10): "
-                    + enemyRealDmg + " dmg\n");
-            int beforeHero = heroCurrentHP;
-            heroCurrentHP = Math.max(0, heroCurrentHP - enemyRealDmg);
-            simLog.append("  " + heroName + " HP: " + beforeHero
-                    + " -> " + heroCurrentHP + "\n\n");
-
-            turn++;
-        }
-
-        // === HASIL AKHIR ===
-        simLog.append("=== RESULT ===\n");
-        if (heroCurrentHP <= 0 && enemyCurrentHP <= 0) {
-            simLog.append("Keduanya KO! Hasil: DRAW.\n");
-        } else if (heroCurrentHP <= 0) {
-            simLog.append(heroName + " kalah! (" + heroName + " HP = 0)\n");
-            simLog.append(enemyName + " menang dengan sisa HP "
-                    + enemyCurrentHP + "/" + enemyMaxHP + "\n");
-        } else {
-            simLog.append(enemyName + " kalah! (" + enemyName + " HP = 0)\n");
-            simLog.append(heroName + " menang dengan sisa HP "
-                    + heroCurrentHP + "/" + heroMaxHP + "\n");
-        }
-
-        logToOutput(simLog.toString());
+        logToOutput(log + "\n");
         logSeparator();
     }
 
@@ -376,8 +287,10 @@ public class RPGSimulator extends JFrame {
         try {
             double m = Double.parseDouble(raw);
             // jika input gaya persen (>= 5), ubah ke pecahan
-            if (m >= 5) m = m / 100.0;
-            if (m <= 0) m = 1.0;
+            if (m >= 5)
+                m = m / 100.0;
+            if (m <= 0)
+                m = 1.0;
             return m;
         } catch (NumberFormatException e) {
             return 1.0;
@@ -399,6 +312,7 @@ public class RPGSimulator extends JFrame {
     }
 
     public static void main(String[] args) {
+
         SwingUtilities.invokeLater(() -> {
             try {
                 for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
@@ -407,7 +321,8 @@ public class RPGSimulator extends JFrame {
                         break;
                     }
                 }
-            } catch (Exception e) { }
+            } catch (Exception e) {
+            }
             new RPGSimulator().setVisible(true);
         });
     }
